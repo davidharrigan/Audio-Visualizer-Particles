@@ -15,11 +15,6 @@
 #include "ofMain.h"
 #include "Particle.h"
 
-#define WIDTH 1024
-#define HEIGHT 768
-#define HALF_WIDTH 512
-#define HALF_HEIGHT 384
-
 class Visualizer : public ofBaseApp{
 public:
    void setup();
@@ -38,9 +33,6 @@ public:
 
    vector<Particle> particles;
    ofFbo fbo;
-   float history;
-   float time0;
-   float bornRate, bornCount;
 
    // Audio
    ofSoundPlayer song;

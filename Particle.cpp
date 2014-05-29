@@ -1,72 +1,66 @@
 #include "Particle.h"
-#include <iostream>
 
 ofPoint getVelocity(float length, float angle) {
-   ofPoint p;
-   float theta = 90 - ((180 - angle) / 2);
-   float y = length * sin(angle);
-   p.y = y * cos(theta);
-   p.x = length - y * sin(theta);
-   return p;
+    ofPoint p;
+    p.x = length * cos(angle);
+    p.y = length * sin(angle);
+    return p;
 }
 
 Particle::Particle() {
-   live = false;
-
-   sections = 4;
    emitterCenter = ofPoint (ofGetWidth() / 2, ofGetHeight() / 2);
-   numParticles = 32;
 }
 
-void Particle::setup() {
-   emitterRad = 40;
-   color = ofColor::red;
+void Particle::setup(Param p) {
+    param = p;
+    frequencies = new float[param.numParticles];
+    
+    for (int i=0; i<param.numParticles; i++) {
+        frequencies[i] = 0;
+    }
 
-   for (int i=0; i<numParticles; i++) {
-       ofPoint pnt, p;
-       float angle = i * (M_TWO_PI / numParticles);
-       pnt.x = cos(angle) * emitterRad;
-       pnt.y = sin(angle) * emitterRad;
-       p.x = 1;
-       p.y = 1;
-       pos.push_back(emitterCenter + pnt);
-       vel.push_back(p);
-       vel[i].rotateRad(0, 0, angle);
-   }
-   time = 0;
-   live = True;
+    for (int i=0; i<param.numParticles; i++) {
+        ofPoint pnt, p;
+        float angle = i * (M_TWO_PI / param.numParticles);
+        pnt.x = cos(angle) * param.emitterRad;
+        pnt.y = sin(angle) * param.emitterRad;
+        p.x = 0;
+        p.y = 0;
+
+        pos.push_back(emitterCenter + pnt);
+        vel.push_back(p);
+    }
 }
 
-void Particle::update(float dt, float *freq) {
-   direction = 1;
-   float curFreqRange = 0;
-   int bucketCount = numParticles / sections;
-   int curParticle = 0;
+void Particle::update(float *freq, int start) {
+  float curFreqRange = 0;
+  int curParticle = 0;
+  int size = 256/8; 
+  int skips = param.numParticles / size;
 
-   for (int i=0; i<128; i++) {
-       curFreqRange += freq[i];
-       if (i % (128/bucketCount) == 0) {
-           curFreqRange /= (128/numParticles);
-           
-           for (int j=0; j<sections; j++) {
-               int cur = curParticle + (j * bucketCount);
-               vel[cur] = getVelocity(curFreqRange, M_TWO_PI/cur);
-           }
-           curParticle++;
-           curFreqRange = 0;
-       }
-   }
-
+  for (int i=0; i < param.numParticles; i++) {
+    for (int j=0; j<size && i<param.numParticles; j++) {
+      float angle = i * (M_TWO_PI / param.numParticles);
+      vel[i] = getVelocity(param.direction * param.sensitivity * freq[j+start], angle);
+      frequencies[i] = freq[j+start];
+      i++;
+    }
+    i--;
+  }
 }
-
-
 
 void Particle::draw() {
-   float size = 1;
-   float hue = ofMap(time, 0, lifeTime, 128, 255);
-   color.setHue(hue);
-   for (int i=0; i<numParticles; i++) {
-       ofSetColor(color);
-       ofCircle(pos[i] + (pos[i] * vel[i] * 0.5), size);
-   }
+    for (int i=0; i<param.numParticles; i++) {
+        ofColor color = param.color;
+        float size = ofMap(frequencies[i], 0, 1, 0.5, 12);
+        float hue = ofMap(frequencies[i], 0, 1, 100, 300);
+
+        if (param.sensitivity < 1) {
+          size *= param.sensitivity;
+        }
+
+        color.setHue(hue);
+        ofSetColor(color);
+        ofCircle(pos[i] + (pos[i] * vel[i]), size);
+    }
 }

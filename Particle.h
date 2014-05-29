@@ -2,31 +2,28 @@
 
 #include "ofMain.h"
 
+struct Param {
+    float emitterRad;
+    float sensitivity;
+    int direction;
+    int sections;
+    int nBands;
+    int numParticles;
+    int rotationSpeed;
+    ofColor color;
+};
+
 class Particle {
 public:
    Particle();
-   void setup();
-   void update(float dt, float* freq);
+   void setup(Param param);
+   void update(float* freq, int start);
    void draw();
 
    vector<ofPoint> pos;
    vector<ofPoint> vel;
    int numParticles;
-   float time;
-   bool live;
-   int direction;
-   int range;
-   int sections;
-
-   // Initial setup
+   float *frequencies;
    ofPoint emitterCenter;
-   float emitterRad;
-   float velRad;
-   float lifeTime;
-   float rotate;
-   float force; //Attraction/repulsion force inside emitter
-   float spinning; //spinning force inside emitter
-   float friction; //friction, in the rance 0 - 1
-   float frequency;
-   ofColor color;
+   Param param;
 };
